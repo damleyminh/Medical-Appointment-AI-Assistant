@@ -6,7 +6,7 @@ A middleware-driven appointment assistant built with LangGraph and GPT-4o. Patie
 ---
 
 ## Demo Video
-**LinkedIn:** 
+**LinkedIn:** https://www.linkedin.com/feed/update/urn:li:ugcPost:7432497461941899264/
 
 The demo shows all the usage of this system: book/cancel/reschedule appointment, prep instructions, genereal inquiry and escalation. 
 
