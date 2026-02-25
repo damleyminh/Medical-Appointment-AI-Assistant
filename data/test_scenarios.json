@@ -1,0 +1,38 @@
+[
+  {
+    "label": "Reschedule",
+    "message": "I need to reschedule my MRI appointment. I have a conflict next week.",
+    "expected_intent": "reschedule",
+    "expected_status": "READY"
+  },
+  {
+    "label": "Cancel",
+    "message": "Please cancel my appointment for next Monday.",
+    "expected_intent": "cancel",
+    "expected_status": "READY"
+  },
+  {
+    "label": "Prep Instructions - CT",
+    "message": "What should I do to prepare for my CT scan?",
+    "expected_intent": "prep_instructions",
+    "expected_status": "READY"
+  },
+  {
+    "label": "Prep Instructions - MRI",
+    "message": "Do I need to fast before my MRI? Any restrictions?",
+    "expected_intent": "prep_instructions",
+    "expected_status": "READY"
+  },
+  {
+    "label": "Emergency",
+    "message": "I am having severe chest pain and cannot breathe.",
+    "expected_intent": "emergency",
+    "expected_status": "ESCALATE"
+  },
+  {
+    "label": "Unknown",
+    "message": "What time does the cafeteria close?",
+    "expected_intent": "unknown",
+    "expected_status": "NEED_INFO"
+  }
+]

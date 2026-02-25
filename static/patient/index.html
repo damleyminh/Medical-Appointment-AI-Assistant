@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MedSchedule — Patient Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:    #0d1b2e;
+  --teal:    #1db8a0;
+  --teal-dk: #148f7c;
+  --amber:   #f5a623;
+  --rose:    #e8485a;
+  --cloud:   #e8edf4;
+  --mist:    #f4f7fb;
+  --white:   #ffffff;
+  --text:    #0d1b2e;
+  --muted:   #5a6a82;
+  --r:       12px;
+  --shadow:  0 4px 24px rgba(13,27,46,.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--mist);min-height:100vh;display:flex;flex-direction:column;}
+
+header{background:var(--navy);height:60px;display:flex;align-items:center;padding:0 2rem;gap:.7rem;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3);}
+.logo{font-family:'DM Serif Display',serif;color:white;font-size:1.25rem;}
+.logo-dot{width:9px;height:9px;border-radius:50%;background:var(--teal);}
+.portal-tag{margin-left:auto;font-size:.72rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;background:rgba(29,184,160,.15);color:var(--teal);padding:.25rem .75rem;border-radius:20px;border:1px solid rgba(29,184,160,.3);}
+
+.container{max-width:680px;margin:2.5rem auto;padding:0 1.5rem;flex:1;width:100%;}
+
+.welcome{text-align:center;margin-bottom:2rem;}
+.welcome h1{font-family:'DM Serif Display',serif;font-size:1.9rem;color:var(--navy);margin-bottom:.5rem;}
+.welcome p{color:var(--muted);font-size:.9rem;line-height:1.6;}
+
+.card{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;}
+.card-header{padding:1rem 1.4rem;border-bottom:1px solid var(--cloud);display:flex;align-items:center;gap:.6rem;}
+.card-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.95rem;}
+.card-title{font-size:.78rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);}
+.card-body{padding:1.4rem;}
+
+/* Emergency card — severity-aware */
+.emergency-card{border-radius:12px;padding:1.1rem 1.2rem;font-size:.87rem;line-height:1.7;}
+.emergency-card.sev-critical{background:#fff0f0;border:2px solid #e8485a;}
+.emergency-card.sev-urgent{background:#fff8ed;border:2px solid #f5a623;}
+.emergency-card.sev-monitor{background:#fffbea;border:2px solid #f0c430;}
+.e-badge{display:inline-block;padding:.2rem .7rem;border-radius:20px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem;}
+.e-badge.sev-critical{background:#e8485a;color:white;}
+.e-badge.sev-urgent{background:#f5a623;color:white;}
+.e-badge.sev-monitor{background:#f0c430;color:#5a4000;}
+.emergency-card .e-title{font-size:1.02rem;font-weight:700;margin-bottom:.25rem;}
+.sev-critical .e-title{color:#c0152a;}
+.sev-urgent .e-title{color:#b35c00;}
+.sev-monitor .e-title{color:#7a5c00;}
+.emergency-card .e-reason{font-size:.82rem;margin-bottom:.3rem;opacity:.85;}
+.emergency-card .e-profile-risk{font-size:.82rem;font-weight:600;padding:.4rem .7rem;border-radius:7px;margin-bottom:.8rem;}
+.sev-critical .e-profile-risk{background:#fde8eb;color:#a0122a;border-left:3px solid #e8485a;}
+.sev-urgent .e-profile-risk{background:#fef3e2;color:#8c4700;border-left:3px solid #f5a623;}
+.sev-monitor .e-profile-risk{background:#fffde6;color:#7a5c00;border-left:3px solid #f0c430;}
+.emergency-btn{display:flex;align-items:center;gap:.6rem;width:100%;padding:.7rem 1rem;border-radius:9px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;margin-bottom:.5rem;text-decoration:none;transition:all .15s;}
+.emergency-btn.red{background:#e8485a;color:white;}
+.emergency-btn.red:hover{background:#c0152a;}
+.emergency-btn.amber{background:#f5a623;color:white;}
+.emergency-btn.amber:hover{background:#d4871a;}
+.emergency-btn.dark{background:#0d1b2e;color:white;}
+.emergency-btn.dark:hover{background:#1a3050;}
+.emergency-btn.green{background:#1db8a0;color:white;}
+.emergency-btn.green:hover{background:#169e89;}
+.e-divider{border:none;border-top:1px solid #f5c6cb;margin:.6rem 0;}
+.e-ed-list{font-size:.8rem;color:#5a2020;margin-top:.5rem;}
+.e-ed-list a{color:#c0152a;font-weight:600;}
+
+/* Prep menu options */
+.prep-opt{border:1.5px solid var(--cloud);background:var(--white);border-radius:8px;padding:.45rem .6rem;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;color:var(--navy);transition:all .15s;}
+.prep-opt:hover{border-color:var(--teal);background:#f0fdf9;color:var(--teal-dk);}
+
+/* Quick actions */
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1.2rem;}
+.quick-btn{border:1.5px solid var(--cloud);background:var(--mist);border-radius:10px;padding:.75rem 1rem;cursor:pointer;text-align:left;transition:all .18s;font-family:'DM Sans',sans-serif;}
+.quick-btn:hover{border-color:var(--teal);background:#f0fdf9;transform:translateY(-1px);}
+.quick-btn .q-icon{font-size:1.2rem;margin-bottom:.3rem;}
+.quick-btn .q-label{font-size:.82rem;font-weight:600;color:var(--navy);}
+.quick-btn .q-desc{font-size:.74rem;color:var(--muted);margin-top:.15rem;}
+.quick-btn.danger:hover{border-color:var(--rose);background:#fff5f6;}
+
+/* Chat */
+.chat-messages{display:flex;flex-direction:column;gap:.9rem;min-height:200px;max-height:400px;overflow-y:auto;padding:.5rem 0;margin-bottom:1rem;}
+.msg{display:flex;gap:.7rem;animation:fadeUp .25s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg-avatar{width:32px;height:32px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.85rem;}
+.msg-bubble{padding:.7rem .95rem;border-radius:10px;font-size:.87rem;line-height:1.65;white-space:pre-wrap;max-width:88%;}
+.msg-user{flex-direction:row-reverse;}
+.msg-user .msg-avatar{background:var(--navy);color:white;}
+.msg-user .msg-bubble{background:var(--navy);color:white;}
+.msg-agent .msg-avatar{background:#e8f9f6;color:var(--teal-dk);}
+.msg-agent .msg-bubble{background:var(--white);border:1.5px solid var(--cloud);color:var(--text);}
+.msg-system .msg-avatar{background:#fff8e8;color:var(--amber);}
+.msg-system .msg-bubble{background:#fffbf2;border:1.5px solid #fde8b4;color:var(--text);}
+.msg-escalate .msg-avatar{background:#feeaec;color:var(--rose);}
+.msg-escalate .msg-bubble{background:#fff5f6;border:1.5px solid #f5c6cb;}
+
+.status-badge{display:inline-flex;align-items:center;gap:.3rem;padding:.18rem .55rem;border-radius:20px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.35rem;}
+.badge-READY{background:#e8f9f5;color:var(--teal-dk);}
+.badge-NEED_INFO{background:#fff8e8;color:#b07600;}
+.badge-ESCALATE{background:#feeaec;color:#c13448;}
+.badge-PENDING{background:#f0f4ff;color:#3b5bdb;}
+
+/* Pending notice */
+.pending-notice{background:#f0f4ff;border:1.5px solid #c5d0f5;border-radius:10px;padding:.9rem 1rem;margin-top:.5rem;font-size:.84rem;color:#3b5bdb;display:flex;align-items:center;gap:.6rem;}
+.pending-dot{width:8px;height:8px;border-radius:50%;background:#3b5bdb;animation:pulse 1.5s ease infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Input area */
+.input-row{display:flex;gap:.6rem;align-items:flex-end;}
+textarea{flex:1;padding:.7rem .9rem;border:1.5px solid var(--cloud);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.87rem;line-height:1.5;resize:none;min-height:44px;max-height:120px;transition:border-color .15s;background:var(--mist);}
+textarea:focus{outline:none;border-color:var(--teal);background:white;}
+.send-btn{width:44px;height:44px;border-radius:9px;border:none;background:var(--teal);color:white;cursor:pointer;font-size:1.1rem;transition:all .18s;flex-shrink:0;}
+.send-btn:hover{background:var(--teal-dk);transform:translateY(-1px);}
+.send-btn:disabled{background:var(--cloud);cursor:not-allowed;transform:none;}
+
+.empty-chat{text-align:center;padding:2rem 1rem;color:var(--muted);}
+.empty-chat .e-icon{font-size:2.2rem;opacity:.4;margin-bottom:.6rem;}
+.empty-chat p{font-size:.84rem;line-height:1.6;}
+
+footer{text-align:center;padding:1.5rem;font-size:.75rem;color:var(--muted);}
+
+/* Login overlay */
+.login-overlay{position:fixed;inset:0;background:rgba(13,27,46,.55);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;}
+.login-box{background:white;border-radius:16px;padding:2.2rem 2rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:fadeUp .3s ease;}
+.login-box h2{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--navy);margin-bottom:.3rem;}
+.login-box p{font-size:.83rem;color:var(--muted);margin-bottom:1.4rem;}
+.login-field{margin-bottom:.9rem;}
+.login-field label{display:block;font-size:.77rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem;}
+.login-field input{width:100%;padding:.65rem .85rem;border:1.5px solid var(--cloud);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.87rem;background:var(--mist);transition:border-color .15s;}
+.login-field input:focus{outline:none;border-color:var(--teal);background:white;}
+.login-btn{width:100%;padding:.75rem;border:none;border-radius:9px;background:var(--teal);color:white;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:600;cursor:pointer;transition:all .18s;margin-top:.3rem;}
+.login-btn:hover{background:var(--teal-dk);}
+.login-btn:disabled{background:var(--cloud);cursor:not-allowed;}
+.login-error{color:var(--rose);font-size:.8rem;margin-top:.6rem;text-align:center;min-height:1.1rem;}
+
+
+/* User chip in header */
+.user-chip{margin-left:auto;display:flex;align-items:center;gap:.5rem;background:rgba(29,184,160,.12);border:1px solid rgba(29,184,160,.3);border-radius:20px;padding:.25rem .75rem .25rem .5rem;font-size:.78rem;color:var(--teal);}
+.user-chip .avatar{width:22px;height:22px;border-radius:50%;background:var(--teal);color:white;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.logout-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.72rem;margin-left:.4rem;padding:.1rem .3rem;border-radius:4px;}
+.logout-btn:hover{color:var(--rose);}
+</style>
+</head>
+<body>
+<!-- Check-in overlay — 2 steps -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box" style="max-width:460px;max-height:90vh;overflow-y:auto;">
+
+    <!-- Progress bar -->
+    <div style="display:flex;gap:.4rem;margin-bottom:1.4rem;">
+      <div id="prog1" style="flex:1;height:4px;border-radius:4px;background:var(--teal);transition:all .3s;"></div>
+      <div id="prog2" style="flex:1;height:4px;border-radius:4px;background:var(--cloud);transition:all .3s;"></div>
+    </div>
+
+    <!-- ── Step 1: Basic Info ───────────────────────────────────────────── -->
+    <div id="step1">
+      <div style="font-size:1.8rem;margin-bottom:.4rem;">🏥</div>
+      <h2>Patient Check-In</h2>
+      <p>Step 1 of 2 — Enter your basic details.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem;">
+        <div class="login-field" style="margin-bottom:0;">
+          <label>First Name *</label>
+          <input type="text" id="inFirstName" placeholder="e.g. Jane" autocomplete="given-name"/>
+        </div>
+        <div class="login-field" style="margin-bottom:0;">
+          <label>Last Name *</label>
+          <input type="text" id="inLastName" placeholder="e.g. Smith" autocomplete="family-name"/>
+        </div>
+      </div>
+
+      <div class="login-field" style="margin-top:.7rem;">
+        <label>Date of Birth</label>
+        <input type="date" id="inDob" autocomplete="bday"/>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem;">
+        <div class="login-field" style="margin-bottom:0;">
+          <label>NS Health Card</label>
+          <input type="text" id="inHealthCard" placeholder="NS-1234-5678" maxlength="14"/>
+        </div>
+        <div class="login-field" style="margin-bottom:0;">
+          <label>Phone Number</label>
+          <input type="tel" id="inPhone" placeholder="(902) 555-0100" autocomplete="tel"/>
+        </div>
+      </div>
+
+      <button class="login-btn" style="margin-top:1rem;" onclick="goStep2()">Next: Health Profile →</button>
+      <div class="login-error" id="loginError"></div>
+      <p style="font-size:.72rem;color:var(--muted);margin-top:.6rem;text-align:center;">
+        Only First &amp; Last Name are required.
+      </p>
+    </div>
+
+    <!-- ── Step 2: Health Profile ──────────────────────────────────────── -->
+    <div id="step2" style="display:none;">
+      <div style="font-size:1.8rem;margin-bottom:.4rem;">🩺</div>
+      <h2>Health Profile</h2>
+      <p>Step 2 of 2 — Help us personalise your care. All fields optional.</p>
+
+      <div class="login-field">
+        <label>Current Medical Conditions</label>
+        <input type="text" id="inConditions"
+               placeholder="e.g. Type 2 Diabetes, Hypertension, Asthma"/>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:.25rem;">Separate multiple conditions with commas</div>
+      </div>
+
+      <div class="login-field">
+        <label>Current Medications</label>
+        <input type="text" id="inMedications"
+               placeholder="e.g. Metformin 500mg, Lisinopril 10mg, Ventolin"/>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:.25rem;">Include dosage if known</div>
+      </div>
+
+      <div class="login-field">
+        <label>Known Allergies</label>
+        <input type="text" id="inAllergies"
+               placeholder="e.g. Penicillin, Iodine contrast, Latex, Peanuts"/>
+      </div>
+
+      <div class="login-field">
+        <label>Past Surgeries / Major Procedures</label>
+        <input type="text" id="inSurgeries"
+               placeholder="e.g. Appendectomy 2018, Knee ACL repair 2025"/>
+      </div>
+
+      <div class="login-field">
+        <label>Family History</label>
+        <input type="text" id="inFamilyHistory"
+               placeholder="e.g. Father: heart disease; Mother: breast cancer"/>
+      </div>
+
+      <div class="login-field">
+        <label>Implants / Devices (important for MRI)</label>
+        <input type="text" id="inImplants"
+               placeholder="e.g. Pacemaker, Hip replacement, Dental implants — or None"/>
+      </div>
+
+      <div class="login-field">
+        <label>Preferred Language</label>
+        <input type="text" id="inLanguage" placeholder="e.g. English, French, Arabic"/>
+      </div>
+
+      <div style="display:flex;gap:.6rem;margin-top:.4rem;">
+        <button onclick="goStep1()" style="flex:1;padding:.65rem;border:1.5px solid var(--cloud);background:white;border-radius:9px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.87rem;color:var(--muted);">← Back</button>
+        <button class="login-btn" style="flex:2;" onclick="doLogin()">Enter Portal →</button>
+      </div>
+      <p style="font-size:.72rem;color:var(--muted);margin-top:.6rem;text-align:center;line-height:1.6;">
+        Your health information is used only to personalise responses in this session.<br>
+        Nothing is stored after you close the tab.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<header>
+  <div class="logo-dot"></div>
+  <div class="logo">MedSchedule</div>
+  <div class="user-chip" id="userChip" style="display:none;">
+    <div class="avatar" id="userAvatar"></div>
+    <span id="userName"></span>
+    <button class="logout-btn" onclick="doLogout()" title="Sign out">✕</button>
+  </div>
+  <span class="portal-tag" id="portalTag">Patient Portal</span>
+</header>
+
+<div class="container">
+  <div class="welcome">
+    <h1 id="welcomeHeading">How can we help you today?</h1>
+    <p id="welcomeSub">Use the quick actions below or type your request. Booking and clinical requests are reviewed by staff before delivery.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:#e8f9f5;">⚡</div>
+      <span class="card-title">Quick Actions</span>
+    </div>
+    <div class="card-body">
+      <div class="quick-grid">
+        <button class="quick-btn" onclick="send('I need to reschedule my appointment. Can you show me available times?')">
+          <div class="q-icon">📅</div>
+          <div class="q-label">Reschedule</div>
+          <div class="q-desc">Move to a new time</div>
+        </button>
+        <button class="quick-btn" onclick="send('I would like to cancel my upcoming appointment.')">
+          <div class="q-icon">✕</div>
+          <div class="q-label">Cancel</div>
+          <div class="q-desc">Cancel an appointment</div>
+        </button>
+        <button class="quick-btn" onclick="send('Can you show me all my current appointments?')">
+          <div class="q-icon">📆</div>
+          <div class="q-label">My Appointments</div>
+          <div class="q-desc">View your schedule</div>
+        </button>
+        <button class="quick-btn" onclick="togglePrepMenu()" id="prepBtn">
+          <div class="q-icon">📋</div>
+          <div class="q-label">Prep Instructions</div>
+          <div class="q-desc">How to prepare</div>
+        </button>
+        <button class="quick-btn" onclick="send('I would like to book a new appointment.')">
+          <div class="q-icon">➕</div>
+          <div class="q-label">Book Appointment</div>
+          <div class="q-desc">Schedule something new</div>
+        </button>
+        <button class="quick-btn" onclick="send('What are your clinic hours and location?')">
+          <div class="q-icon">ℹ️</div>
+          <div class="q-label">Clinic Info</div>
+          <div class="q-desc">Hours, location, parking</div>
+        </button>
+      </div>
+
+      <!-- Prep Instructions dropdown menu -->
+      <div id="prepMenu" style="display:none;margin-top:.5rem;background:var(--mist);border:1.5px solid var(--cloud);border-radius:10px;padding:.75rem;animation:fadeUp .2s ease;">
+        <div style="font-size:.76rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem;">Select appointment type:</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;">
+          <button class="prep-opt" onclick="sendPrep('MRI Imaging')">🧲 MRI</button>
+          <button class="prep-opt" onclick="sendPrep('CT Scan')">🔬 CT Scan</button>
+          <button class="prep-opt" onclick="sendPrep('X-Ray')">☢️ X-Ray</button>
+          <button class="prep-opt" onclick="sendPrep('Ultrasound')">🔊 Ultrasound</button>
+          <button class="prep-opt" onclick="sendPrep('Blood Work')">🩸 Blood Work</button>
+          <button class="prep-opt" onclick="sendPrep('Bone Density Scan')">🦴 Bone Density</button>
+          <button class="prep-opt" onclick="sendPrep('Annual Physical')">🩺 Annual Physical</button>
+          <button class="prep-opt" onclick="sendPrep('Specialist Consultation')">👨‍⚕️ Specialist</button>
+          <button class="prep-opt" onclick="sendPrep('Orthopedic Assessment')">🦵 Orthopedic</button>
+          <button class="prep-opt" onclick="sendPrep('Eye Care')">👁️ Eye Care</button>
+          <button class="prep-opt" onclick="sendPrep('Follow-up Visit')">🔁 Follow-up</button>
+          <button class="prep-opt" onclick="sendPrep('Vaccination')">💉 Vaccination</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height:1rem;"></div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:#e8f4ff;">💬</div>
+      <span class="card-title">Message Us</span>
+      <button onclick="clearChat()" style="margin-left:auto;background:none;border:1px solid var(--cloud);border-radius:6px;padding:.2rem .6rem;font-size:.72rem;color:var(--muted);cursor:pointer;">Clear</button>
+    </div>
+    <div class="card-body">
+      <div class="chat-messages" id="chatMessages">
+        <div class="empty-chat" id="emptyChat">
+          <div class="e-icon">🏥</div>
+          <p>Send a message or use a quick action above.<br>Our team reviews all responses before sending.</p>
+        </div>
+      </div>
+      <div class="input-row">
+        <textarea id="msgInput" placeholder="Type your message…" rows="1" onkeydown="handleKey(event)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>MedSchedule AI · MBAN 5510 · Human-in-the-Loop System</footer>
+
+<script>
+const API = '';  // same origin
+let currentPatient = null;   // {name, dob, health_card, phone}
+
+// ── Check-in step navigation ─────────────────────────────────────────────────
+function goStep2() {
+  const first = document.getElementById('inFirstName').value.trim();
+  const last  = document.getElementById('inLastName').value.trim();
+  const err   = document.getElementById('loginError');
+  if (!first || !last) { err.textContent = 'First and last name are required to continue.'; return; }
+  err.textContent = '';
+  document.getElementById('step1').style.display = 'none';
+  document.getElementById('step2').style.display = 'block';
+  document.getElementById('prog2').style.background = 'var(--teal)';
+}
+
+function goStep1() {
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step1').style.display = 'block';
+  document.getElementById('prog2').style.background = 'var(--cloud)';
+}
+
+function doLogin() {
+  const first = document.getElementById('inFirstName').value.trim();
+  const last  = document.getElementById('inLastName').value.trim();
+  if (!first || !last) { goStep2(); return; }   // shouldn't happen but guard anyway
+
+  currentPatient = {
+    name:          `${first} ${last}`,
+    dob:           document.getElementById('inDob').value || null,
+    health_card:   document.getElementById('inHealthCard').value.trim() || null,
+    phone:         document.getElementById('inPhone').value.trim() || null,
+    conditions:    document.getElementById('inConditions').value.trim() || null,
+    medications:   document.getElementById('inMedications').value.trim() || null,
+    allergies:     document.getElementById('inAllergies').value.trim() || null,
+    surgeries:     document.getElementById('inSurgeries').value.trim() || null,
+    family_history:document.getElementById('inFamilyHistory').value.trim() || null,
+    implants:      document.getElementById('inImplants').value.trim() || null,
+    language:      document.getElementById('inLanguage').value.trim() || null,
+  };
+  onLoginSuccess();
+}
+
+function onLoginSuccess() {
+  document.getElementById('loginOverlay').style.display = 'none';
+  // Show user chip in header
+  const initials = currentPatient.name.split(' ').map(n=>n[0]).join('').toUpperCase();
+  document.getElementById('userAvatar').textContent = initials;
+  document.getElementById('userName').textContent   = currentPatient.name;
+  document.getElementById('userChip').style.display = 'flex';
+  document.getElementById('portalTag').style.display = 'none';
+  // Personalise welcome heading
+  const first = currentPatient.name.split(' ')[0];
+  document.getElementById('welcomeHeading').textContent = `Welcome, ${first}!`;
+  document.getElementById('welcomeSub').textContent =
+    'Your personalised appointment portal is ready. Booking and clinical requests are reviewed by staff before delivery.';
+  // Build full health profile context for the agent
+  const lines = [`PATIENT PROFILE — ${currentPatient.name}`];
+  if (currentPatient.dob)            lines.push(`Date of birth: ${currentPatient.dob}`);
+  if (currentPatient.health_card)    lines.push(`NS Health Card: ${currentPatient.health_card}`);
+  if (currentPatient.phone)          lines.push(`Phone: ${currentPatient.phone}`);
+  if (currentPatient.conditions)     lines.push(`Medical conditions: ${currentPatient.conditions}`);
+  if (currentPatient.medications)    lines.push(`Current medications: ${currentPatient.medications}`);
+  if (currentPatient.allergies)      lines.push(`Known allergies: ${currentPatient.allergies}`);
+  if (currentPatient.surgeries)      lines.push(`Past surgeries/procedures: ${currentPatient.surgeries}`);
+  if (currentPatient.family_history) lines.push(`Family history: ${currentPatient.family_history}`);
+  if (currentPatient.implants)       lines.push(`Implants/devices: ${currentPatient.implants}`);
+  if (currentPatient.language)       lines.push(`Preferred language: ${currentPatient.language}`);
+  conversationHistory = [{role:'system', content: lines.join('\n')}];
+}
+
+function doLogout() {
+  currentPatient = null;
+  conversationHistory = [];
+  clearChat();
+  document.getElementById('userChip').style.display = 'none';
+  document.getElementById('portalTag').style.display = '';
+  document.getElementById('welcomeHeading').textContent = 'How can we help you today?';
+  document.getElementById('welcomeSub').textContent =
+    'Use the quick actions below or type your request. A staff member reviews all responses before you receive them.';
+  ['inFirstName','inLastName','inDob','inHealthCard','inPhone',
+   'inConditions','inMedications','inAllergies','inSurgeries',
+   'inFamilyHistory','inImplants','inLanguage'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  goStep1();
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('loginOverlay').style.display = 'flex';
+}
+
+function renderTriageCard(draft) {
+  const SEP = "|||";
+  const parts   = draft.split(SEP);
+  const level   = parts[0] || "";
+  const reason  = parts[1] || "";
+  const summary = parts[2] || "";
+  const extra   = parts[3] || "";
+
+  const edLinks = `
+    <div style="font-size:.79rem;font-weight:600;margin-bottom:.3rem;margin-top:.6rem;">🏥 Nearest EDs (24/7):</div>
+    <div style="font-size:.79rem;line-height:1.9;">
+      <a href="https://maps.google.com/?q=1840+Bell+Road+Halifax" target="_blank" style="color:inherit;font-weight:600;">📍 QEII Halifax Infirmary ED</a><br>
+      <a href="https://maps.google.com/?q=325+Pleasant+St+Dartmouth" target="_blank" style="color:inherit;font-weight:600;">📍 Dartmouth General Hospital ED</a>
+    </div>`;
+
+  if (level === "TRIAGE_CALL_999") {
+    return `<div style="background:#fff0f0;border:2px solid #e8485a;border-radius:12px;padding:1.1rem 1.2rem;font-size:.87rem;line-height:1.7;">
+      <div style="font-size:1rem;font-weight:700;color:#c0152a;margin-bottom:.3rem;">🚨 Call 9-1-1 Immediately</div>
+      <div style="font-size:.83rem;margin-bottom:.5rem;opacity:.85;">${reason}</div>
+      ${extra ? `<div style="font-size:.78rem;font-weight:600;padding:.3rem .6rem;border-radius:6px;background:rgba(192,21,42,.1);display:inline-block;margin-bottom:.7rem;color:#c0152a;">⚕️ Your health profile raised risk: ${extra}</div><br>` : ""}
+      <a style="display:flex;align-items:center;gap:.6rem;width:100%;padding:.65rem .9rem;border-radius:9px;background:#e8485a;color:white;font-weight:600;font-size:.86rem;text-decoration:none;margin-bottom:.4rem;" href="tel:911">📞 Call 9-1-1 — Ambulance</a>
+      <a style="display:flex;align-items:center;gap:.6rem;width:100%;padding:.65rem .9rem;border-radius:9px;background:#f5a623;color:white;font-weight:600;font-size:.86rem;text-decoration:none;margin-bottom:.4rem;" href="tel:811">📞 Call 8-1-1 — Nurse Hotline</a>
+      ${edLinks}
+    </div>`;
+  }
+  if (level === "TRIAGE_GO_ED") {
+    return `<div style="background:#fff4e5;border:2px solid #f5a623;border-radius:12px;padding:1.1rem 1.2rem;font-size:.87rem;line-height:1.7;">
+      <div style="font-size:1rem;font-weight:700;color:#b36200;margin-bottom:.3rem;">🏥 Go to Emergency Department Today</div>
+      <div style="font-size:.83rem;margin-bottom:.5rem;opacity:.85;">${reason}</div>
+      ${extra ? `<div style="font-size:.78rem;font-weight:600;padding:.3rem .6rem;border-radius:6px;background:rgba(179,98,0,.1);display:inline-block;margin-bottom:.7rem;color:#b36200;">⚕️ Your health profile raised risk: ${extra}</div><br>` : ""}
+      <div style="font-size:.81rem;margin-bottom:.7rem;color:#6b3a00;">Please go to an ED today. You do not need to call 9-1-1 unless symptoms worsen rapidly.</div>
+      <a style="display:flex;align-items:center;gap:.6rem;width:100%;padding:.65rem .9rem;border-radius:9px;background:#f5a623;color:white;font-weight:600;font-size:.86rem;text-decoration:none;margin-bottom:.4rem;" href="https://maps.google.com/?q=1840+Bell+Road+Halifax" target="_blank">📍 QEII Halifax Infirmary ED</a>
+      <a style="display:flex;align-items:center;gap:.6rem;width:100%;padding:.65rem .9rem;border-radius:9px;background:#f5a623;color:white;font-weight:600;font-size:.86rem;text-decoration:none;margin-bottom:.4rem;" href="https://maps.google.com/?q=325+Pleasant+St+Dartmouth" target="_blank">📍 Dartmouth General Hospital ED</a>
+      <a style="display:flex;align-items:center;gap:.6rem;width:100%;padding:.65rem .9rem;border-radius:9px;background:white;color:#b36200;border:1.5px solid #f5a623;font-weight:600;font-size:.86rem;text-decoration:none;" href="tel:911">📞 Call 9-1-1 if worsening</a>
+    </div>`;
+  }
+  if (level === "TRIAGE_URGENT") {
+    return `<div style="background:#fffbe5;border:2px solid #e6c800;border-radius:12px;padding:1.1rem 1.2rem;font-size:.87rem;line-height:1.7;">
+      <div style="font-size:1rem;font-weight:700;color:#8a7000;margin-bottom:.3rem;">⏰ See a Doctor Within 24 Hours</div>
+      <div style="font-size:.83rem;margin-bottom:.5rem;opacity:.85;">${reason}</div>
+      <div style="font-size:.81rem;margin-bottom:.7rem;color:#5a4700;">Not an emergency, but don't wait — visit a walk-in clinic today.</div>
+      ${extra ? `<div style="font-size:.81rem;margin-bottom:.7rem;">💡 ${extra}</div>` : ""}
+      <a style="display:flex;align-items:center;gap:.6rem;width:100%;padding:.65rem .9rem;border-radius:9px;background:#e6c800;color:#3a2e00;font-weight:600;font-size:.86rem;text-decoration:none;margin-bottom:.4rem;" href="https://www.medimap.ca" target="_blank">🔍 Find a walk-in clinic near you</a>
+      <button style="display:flex;align-items:center;gap:.6rem;width:100%;padding:.65rem .9rem;border-radius:9px;background:white;color:var(--navy);border:1.5px solid var(--cloud);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.86rem;cursor:pointer;margin-bottom:.4rem;" onclick="send('I would like to book an appointment.')">📅 Book an appointment here</button>
+    </div>`;
+  }
+  // TRIAGE_MONITOR
+  return `<div style="background:#f0fdf9;border:2px solid #1db8a0;border-radius:12px;padding:1.1rem 1.2rem;font-size:.87rem;line-height:1.7;">
+    <div style="font-size:1rem;font-weight:700;color:#0e7a6a;margin-bottom:.3rem;">✅ Safe to Monitor at Home</div>
+    <div style="font-size:.83rem;margin-bottom:.5rem;opacity:.85;">${reason}</div>
+    ${extra ? `<div style="font-size:.82rem;margin-bottom:.7rem;color:#0e5a4e;">💡 ${extra}</div>` : ""}
+    <div style="font-size:.79rem;color:var(--muted);margin-bottom:.6rem;border-top:1px dashed rgba(0,0,0,.1);padding-top:.5rem;">If symptoms worsen, call 8-1-1 or go to your nearest ED.</div>
+    <button style="display:flex;align-items:center;gap:.6rem;width:100%;padding:.65rem .9rem;border-radius:9px;background:#1db8a0;color:white;border:none;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.86rem;cursor:pointer;margin-bottom:.4rem;" onclick="send('I would like to book an appointment.')">📅 Book an appointment</button>
+    <a style="display:flex;align-items:center;gap:.6rem;width:100%;padding:.65rem .9rem;border-radius:9px;background:white;color:var(--navy);border:1.5px solid var(--cloud);font-weight:600;font-size:.86rem;text-decoration:none;" href="tel:811">📞 Call 8-1-1 for nurse advice</a>
+  </div>`;
+}
+
+function renderEmergencyCard(triageJson) {
+  // Parse triage data if available, fall back to critical defaults
+  let t = {severity:"critical", condition:"Possible emergency", reason:"Symptoms flagged as potentially serious.",
+            profile_risk:null, action:"call 911 immediately"};
+  if (triageJson) {
+    try { t = JSON.parse(triageJson); } catch(e) {}
+  }
+
+  const sev = t.severity || "critical";
+  const icons = {critical:"🚨", urgent:"⚠️", monitor:"🔔"};
+  const icon  = icons[sev] || "🚨";
+  const labels = {critical:"Critical — Act Now", urgent:"Urgent", monitor:"Monitor Closely"};
+  const badge  = labels[sev] || "Critical";
+
+  // Primary action button varies by severity
+  let primaryBtn = "";
+  if (sev === "critical") {
+    primaryBtn = `<a class="emergency-btn red" href="tel:911">📞 Call 9-1-1 — Ambulance / Emergency</a>`;
+  } else if (sev === "urgent") {
+    primaryBtn = `<a class="emergency-btn amber" href="tel:911">📞 Call 9-1-1 or Go to ED Now</a>`;
+  } else {
+    primaryBtn = `<a class="emergency-btn green" href="tel:811">📞 Call 8-1-1 — Health811 Nurse Line</a>`;
+  }
+
+  // Profile risk box — only shown if triage found a relevant risk factor
+  const profileBox = t.profile_risk
+    ? `<div class="e-profile-risk">⚕️ Based on your health profile: ${t.profile_risk}</div>`
+    : "";
+
+  // ED links — always shown for critical/urgent
+  const edSection = sev !== "monitor" ? `
+    <hr class="e-divider">
+    <div style="font-size:.8rem;font-weight:600;color:#5a2020;margin-bottom:.4rem;">🏥 Nearest Emergency Departments (24/7):</div>
+    <div class="e-ed-list">
+      <a href="https://maps.google.com/?q=1840+Bell+Road+Halifax+NS" target="_blank">📍 QEII Halifax Infirmary ED</a> — 1840 Bell Rd, Halifax<br>
+      <a href="https://maps.google.com/?q=325+Pleasant+Street+Dartmouth+NS" target="_blank">📍 Dartmouth General Hospital ED</a> — 325 Pleasant St, Dartmouth<br>
+      <a href="https://maps.google.com/?q=5980+University+Ave+Halifax+NS" target="_blank">📍 IWK Health Centre ED</a> — South St, Halifax (children &amp; women)
+    </div>` : `
+    <hr class="e-divider">
+    <div style="font-size:.79rem;color:var(--muted);">If symptoms worsen, call 9-1-1 or go to your nearest ED immediately.</div>`;
+
+  return `<div class="emergency-card sev-${sev}">
+    <span class="e-badge sev-${sev}">${icon} ${badge}</span>
+    <div class="e-title">${t.condition}</div>
+    <div class="e-reason">${t.reason}</div>
+    ${profileBox}
+    ${primaryBtn}
+    <a class="emergency-btn amber" href="tel:811">📞 Call 8-1-1 — Health811 (24/7 nurse advice)</a>
+    <a class="emergency-btn dark" href="tel:9024738888">📞 QEII ED Direct — (902) 473-2700</a>
+    ${edSection}
+  </div>`;
+}
+
+function togglePrepMenu() {
+  const menu = document.getElementById('prepMenu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+function sendPrep(type) {
+  document.getElementById('prepMenu').style.display = 'none';
+  send('What do I need to do to prepare for my ' + type + '?');
+}
+let conversationHistory = [];  // [{role, content}] — sent with each message for context
+
+function hideEmpty() {
+  const e = document.getElementById('emptyChat');
+  if (e) e.remove();
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function formatText(s) {
+  if (!s) return '';
+  // 1. Escape HTML first
+  let t = escHtml(s);
+  // 2. Convert markdown links [text](url) → <a>text</a>
+  t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:underline;">$1</a>');
+  // 3. Full URLs not already in an href → clickable (show clean URL as text)
+  t = t.replace(/(?<!href=")(?<!">)(https?:\/\/[^\s<>"&]+)/g,
+      '<a href="$1" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:underline;">$1</a>');
+  // 4. Bare domains like nshealth.ca — show as link, no duplicate text
+  t = t.replace(/(?:Website:\s*)([a-zA-Z0-9-]+\.(?:ca|com|org|net)(?:\/[^\s<"]*)?)/g,
+      'Website: <a href="https://$1" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:underline;">$1</a>');
+  // 5. **bold** → <strong>
+  t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // 6. Lone * bullet markers → •
+  t = t.replace(/^\s*\*\s+/gm, '• ');
+  // 7. Newlines → <br>
+  t = t.replace(/\n/g, '<br>');
+  return t;
+}
+
+function appendMsg(role, text, meta) {
+  hideEmpty();
+  const avatars = {user:'👤', agent:'🤖', system:'⚙️', escalate:'🚨'};
+  const chat = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `msg msg-${role}`;
+  div.innerHTML = `
+    <div class="msg-avatar">${avatars[role]||'💬'}</div>
+    <div class="msg-content">
+      ${meta ? `<div style="font-size:.7rem;color:var(--muted);margin-bottom:.25rem;">${meta}</div>` : ''}
+      <div class="msg-bubble">${text}</div>
+    </div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function appendPending() {
+  hideEmpty();
+  const chat = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.id = 'pendingNotice';
+  div.className = 'pending-notice';
+  div.innerHTML = `<div class="pending-dot"></div> Your request is being reviewed by a staff member. You will receive a response shortly.`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function clearPending() {
+  const p = document.getElementById('pendingNotice');
+  if (p) p.remove();
+}
+
+function setLoading(on) {
+  document.getElementById('sendBtn').disabled = on;
+  document.getElementById('msgInput').disabled = on;
+}
+
+function clearChat() {
+  conversationHistory = [];
+  document.getElementById('chatMessages').innerHTML = `
+    <div class="empty-chat" id="emptyChat">
+      <div class="e-icon">🏥</div>
+      <p>Send a message or use a quick action above.</p>
+    </div>`;
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+async function send(text) {
+  document.getElementById('msgInput').value = text;
+  await sendMessage();
+}
+
+async function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  setLoading(true);
+  appendMsg('user', escHtml(msg));
+
+  // Add to history before sending
+  conversationHistory.push({role: 'user', content: msg});
+
+  try {
+    const res = await fetch(`${API}/api/run`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        message: msg,
+        conversation_history: (() => {
+          // Always keep profile (index 0) + last 7 conversation turns
+          const profile = conversationHistory[0] && conversationHistory[0].role === 'system'
+            ? [conversationHistory[0]] : [];
+          const recent = conversationHistory.slice(1).slice(-7);
+          return [...profile, ...recent];
+        })(),
+        patient_name: currentPatient ? currentPatient.name : null,
+        health_profile: currentPatient ? (() => {
+          const lines = [];
+          if (currentPatient.conditions)     lines.push(`Medical conditions: ${currentPatient.conditions}`);
+          if (currentPatient.medications)    lines.push(`Current medications: ${currentPatient.medications}`);
+          if (currentPatient.allergies)      lines.push(`Known allergies: ${currentPatient.allergies}`);
+          if (currentPatient.surgeries)      lines.push(`Past surgeries/procedures: ${currentPatient.surgeries}`);
+          if (currentPatient.family_history) lines.push(`Family history: ${currentPatient.family_history}`);
+          if (currentPatient.implants)       lines.push(`Implants/devices: ${currentPatient.implants}`);
+          if (currentPatient.dob)            lines.push(`Date of birth: ${currentPatient.dob}`);
+          if (currentPatient.health_card)    lines.push(`NS Health Card: ${currentPatient.health_card}`);
+          return lines.join('\n');
+        })() : null
+      })
+    });
+    const data = await res.json();
+
+    if (data.status === 'ESCALATE') {
+      const reply = data.final || data.draft || '';
+      conversationHistory.push({role: 'agent', content: reply});
+      if (reply.startsWith('TRIAGE_')) {
+        appendMsg('escalate', renderTriageCard(reply));
+      } else if (reply.startsWith('EMERGENCY_TRIAGE:')) {
+        const triageJson = reply.slice('EMERGENCY_TRIAGE:'.length);
+        appendMsg('escalate', renderEmergencyCard(triageJson));
+      } else if (reply === 'EMERGENCY_RESPONSE') {
+        appendMsg('escalate', renderEmergencyCard(null));
+      } else {
+        appendMsg('escalate', formatText(reply));
+      }
+    } else if (data.status === 'NEED_INFO') {
+      const reply = data.final || data.draft || '';
+      conversationHistory.push({role: 'agent', content: reply});
+      appendMsg('system',   formatText(reply));
+    } else if (data.hitl_needed) {
+      appendPending();
+      pollForResponse(data.run_id);
+    } else {
+      const reply = data.final || data.draft || '';
+      conversationHistory.push({role: 'agent', content: reply});
+      const meta = data.hitl_needed === false ? '' : '';
+      if (reply.startsWith('TRIAGE_')) {
+        const isSerious = reply.startsWith('TRIAGE_CALL_999') || reply.startsWith('TRIAGE_GO_ED');
+        appendMsg(isSerious ? 'escalate' : 'agent', renderTriageCard(reply), meta);
+      } else if (reply.startsWith('EMERGENCY_TRIAGE:')) {
+        const triageJson = reply.slice('EMERGENCY_TRIAGE:'.length);
+        appendMsg('escalate', renderEmergencyCard(triageJson), meta);
+      } else {
+        appendMsg('agent', formatText(reply), meta);
+      }
+    }
+  } catch(err) {
+    appendMsg('system', `⚠️ Error: ${err.message}`);
+  } finally {
+    setLoading(false);
+  }
+}
+
+// Poll the server every 3s to check if staff has approved the response
+async function pollForResponse(runId, attempts = 0) {
+  if (attempts > 60) {  // 3 min timeout
+    clearPending();
+    appendMsg('system', '⚠️ Response is taking longer than expected. Please call us directly.');
+    return;
+  }
+  await new Promise(r => setTimeout(r, 3000));
+  try {
+    const res = await fetch(`${API}/api/run/${runId}`);
+    const data = await res.json();
+    if (data.hitl_action && !['auto-escalated','auto-need-info'].includes(data.hitl_action) && data.final_response) {
+      clearPending();
+      conversationHistory.push({role: 'agent', content: data.final_response});
+      const isAutoAnswered = data.hitl_action === 'auto-answered';
+      const meta = isAutoAnswered ? 'Auto-answered' : `Reviewed by staff · ${data.hitl_action}`;
+      if (data.final_response && data.final_response.startsWith('TRIAGE_')) {
+        const isSerious = data.final_response.startsWith('TRIAGE_CALL_999') || data.final_response.startsWith('TRIAGE_GO_ED');
+        appendMsg(isSerious ? 'escalate' : 'agent', renderTriageCard(data.final_response), meta);
+      } else if (data.final_response && data.final_response.startsWith('EMERGENCY_TRIAGE:')) {
+        const triageJson = data.final_response.slice('EMERGENCY_TRIAGE:'.length);
+        appendMsg('escalate', renderEmergencyCard(triageJson));
+      } else if (data.final_response === 'EMERGENCY_RESPONSE') {
+        appendMsg('escalate', renderEmergencyCard(null));
+      } else {
+        appendMsg('agent', formatText(data.final_response), meta);
+      }
+      return;
+    }
+  } catch(e) {}
+  pollForResponse(runId, attempts + 1);
+}
+</script>
+</body>
+</html>
